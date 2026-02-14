@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💌 Quick Question</title>
+  <style>
+    :root { --bg1:#fff1f6; --bg2:#ffe4ef; --card:#ffffffcc; --text:#1f2937; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+      overflow: hidden;
+    }
+    .card{
+      width: min(560px, 92vw);
+      padding: 28px 22px;
+      border-radius: 18px;
+      background: var(--card);
+      border: 1px solid #ffffff;
+      box-shadow: 0 20px 50px rgba(0,0,0,.08);
+      text-align: center;
+      backdrop-filter: blur(8px);
+      position: relative;
+    }
+    h1{
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 34px);
+      letter-spacing: -0.02em;
+    }
+    p{
+      margin: 0 0 18px;
+      font-size: 16px;
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+    .hint{
+      font-size: 13px;
+      opacity: 0.65;
+      margin-top: 10px;
+    }
+
+    .buttons-zone{
+      position: relative;
+      height: 90px;
+      margin-top: 10px;
+    }
+    button{
+      appearance: none;
+      border: 0;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,.10);
+      user-select: none;
+      touch-action: manipulation;
+    }
+    button:active{ transform: translateY(1px) scale(0.99); }
+
+    #yesBtn{
+      background: #ff3b7a;
+      color: white;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-120%, -50%);
+    }
+    #yesBtn:hover{ box-shadow: 0 14px 26px rgba(255,59,122,.30); }
+
+    #noBtn{
+      background: #111827;
+      color: white;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(20%, -50%);
+    }
+
+    .result{
+      margin-top: 14px;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    /* floating hearts */
+    .heart{
+      position: fixed;
+      left: 0; top: 0;
+      font-size: 18px;
+      pointer-events: none;
+      opacity: 0.9;
+      animation: floatUp 1.8s ease-in forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.12));
+    }
+    @keyframes floatUp{
+      0%   { transform: translate(var(--x), var(--y)) scale(0.9) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      100% { transform: translate(calc(var(--x) + var(--dx)), calc(var(--y) - 220px)) scale(1.2) rotate(18deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <h1 id="title">Hey ❤️</h1>
+    <p id="question">Will you be my Valentine?</p>
+
+    <div class="buttons-zone" id="zone">
+      <button id="yesBtn">Yes</button>
+      <button id="noBtn">No</button>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div class="hint">Tip: try to click “No” 😅</div>
+  </div>
+
+  <script>
+    // === Customize these ===
+    const PERSON_NAME = "Babe"; // e.g., "Abbey"
+    const YOUR_NAME = "Fahim";
+
+    // Apply custom text
+    document.getElementById("title").textContent = `Hey ${PERSON_NAME} ❤️`;
+    document.getElementById("question").textContent = "Will you be my Valentine?";
+
+    const zone = document.getElementById("zone");
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const result = document.getElementById("result");
+
+    let noCounter = 0;
+
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    function moveNoButton() {
+      const zoneRect = zone.getBoundingClientRect();
+      const btnRect  = noBtn.getBoundingClientRect();
+
+      // Max positions inside the zone
+      const maxX = zoneRect.width  - btnRect.width;
+      const maxY = zoneRect.height - btnRect.height;
+
+      // Random target
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+
+      noBtn.style.left = `${clamp(x, 0, maxX)}px`;
+      noBtn.style.top  = `${clamp(y, 0, maxY)}px`;
+      noBtn.style.transform = `translate(0,0)`;
+
+      noCounter++;
+      if (noCounter === 3) noBtn.textContent = "Nope";
+      if (noCounter === 6) noBtn.textContent = "Stop 😭";
+      if (noCounter === 10) noBtn.textContent = "Nice try";
+    }
+
+    // Make it "run away" when cursor gets close
+    function handleMouseMove(e){
+      const zoneRect = zone.getBoundingClientRect();
+      const mx = e.clientX - zoneRect.left;
+      const my = e.clientY - zoneRect.top;
+
+      const b = noBtn.getBoundingClientRect();
+      const bx = (b.left - zoneRect.left) + b.width/2;
+      const by = (b.top  - zoneRect.top ) + b.height/2;
+
+      const dx = mx - bx;
+      const dy = my - by;
+      const dist = Math.hypot(dx, dy);
+
+      // Threshold: how close before it escapes
+      if (dist < 90) moveNoButton();
+    }
+
+    // Desktop
+    zone.addEventListener("mousemove", handleMouseMove);
+    noBtn.addEventListener("mouseenter", moveNoButton);
+
+    // Mobile: touching it makes it jump
+    noBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      moveNoButton();
+    }, { passive: false });
+
+    noBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      moveNoButton();
+    });
+
+    // Hearts celebration
+    function spawnHearts(count = 18){
+      const emojis = ["💖","💘","💝","❤️","💕","🥰"];
+      for (let i = 0; i < count; i++){
+        const h = document.createElement("div");
+        h.className = "heart";
+        h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+
+        const startX = window.innerWidth * (0.2 + Math.random()*0.6);
+        const startY = window.innerHeight * (0.55 + Math.random()*0.25);
+        const driftX = (Math.random()*160 - 80);
+
+        h.style.setProperty("--x", `${startX}px`);
+        h.style.setProperty("--y", `${startY}px`);
+        h.style.setProperty("--dx", `${driftX}px`);
+        h.style.fontSize = `${16 + Math.random()*18}px`;
+        h.style.animationDelay = `${Math.random()*0.25}s`;
+
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 2200);
+      }
+    }
+
+    yesBtn.addEventListener("click", () => {
+      result.textContent = `YAY!!! 💞 See you soon — love, ${YOUR_NAME}`;
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      spawnHearts(24);
+      setTimeout(() => spawnHearts(18), 250);
+    });
+
+    // Put the "No" button somewhere fun immediately
+    // (so it’s not perfectly centered every time)
+    setTimeout(moveNoButton, 120);
+  </script>
+</body>
+</html>
